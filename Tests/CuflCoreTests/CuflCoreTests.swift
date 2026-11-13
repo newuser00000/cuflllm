@@ -231,17 +231,17 @@ struct CuflCoreTests {
 
         let initLine = #"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}"#
         let initResp = try #require(mcp.handleMessageLine(initLine))
-        #expect(initResp.contains(#""name":"cufl""#))
+        #expect(initResp.contains(#""name":"cuflllm""#))
 
         let notifLine = #"{"jsonrpc":"2.0","method":"notifications/initialized"}"#
         #expect(mcp.handleMessageLine(notifLine) == nil)
 
         let listLine = #"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#
         let listResp = try #require(mcp.handleMessageLine(listLine))
-        #expect(listResp.contains("cufl_get_screen_state"))
-        #expect(listResp.contains("cufl_click"))
-        #expect(listResp.contains("cufl_type_text"))
-        #expect(listResp.contains("cufl_batch"))
+        #expect(listResp.contains("cuflllm_get_screen_state"))
+        #expect(listResp.contains("cuflllm_click"))
+        #expect(listResp.contains("cuflllm_type_text"))
+        #expect(listResp.contains("cuflllm_batch"))
     }
 
     @Test("BatchActionRequest decoding, empty validation, and HTTP /batch routing")

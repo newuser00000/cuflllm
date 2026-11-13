@@ -115,7 +115,7 @@ public enum OCRFallback {
     }
 
     private final class ImageCaptureBox: @unchecked Sendable {
-        var result: Result<CGImage, Error> = .failure(NSError(domain: "cufl.ocr", code: -1, userInfo: [NSLocalizedDescriptionKey: "OCR capture timed out"]))
+        var result: Result<CGImage, Error> = .failure(NSError(domain: "cuflllm.ocr", code: -1, userInfo: [NSLocalizedDescriptionKey: "OCR capture timed out"]))
     }
 
     private static func captureWindowCGImage(windowNumber: Int, bounds: Rect) -> Result<CGImage, Error> {
@@ -139,7 +139,7 @@ public enum OCRFallback {
                     config.width = max(1, Int(bounds.width * 2))
                     config.height = max(1, Int(bounds.height * 2))
                 } else {
-                    throw NSError(domain: "cufl.ocr", code: -2, userInfo: [NSLocalizedDescriptionKey: "No captureable display or window found"])
+                    throw NSError(domain: "cuflllm.ocr", code: -2, userInfo: [NSLocalizedDescriptionKey: "No captureable display or window found"])
                 }
 
                 let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)

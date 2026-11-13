@@ -1,16 +1,18 @@
-# CUFL — Computer Use For LLMs
+# cuflllm — Computer Use For LLMs
 
 A fast, zero-dependency macOS desktop automation service that replaces screenshot-heavy VLM loops with structured **Accessibility (`AXUIElement`)**, **Window Server (`CGWindowListCopyWindowInfo`)**, and **on-device Vision OCR (`ScreenCaptureKit` + `VNRecognizeTextRequest`)** snapshots.
 
 Designed to let local LLMs (~27B–32B models via Ollama, LM Studio, or MLX) as well as cloud/MCP agents read and control desktop apps with tiny token budgets and low latency.
 
+Repository: [github.com/newuser00000/cuflllm](https://github.com/newuser00000/cuflllm)
+
 ---
 
-## Why CUFL?
+## Why cuflllm?
 
 Most computer-use setups capture a full PNG screenshot every step, burn thousands of vision tokens, guess pixel coordinates, and repeat round-trips after every single click.
 
-CUFL instead reads the live OS Accessibility tree, strips hidden/decorative clutter, assigns short stable-per-snapshot IDs (`e1`, `e2`, ...), executes actions (or multi-step batches), and returns only what changed (`DIFF:`) plus the updated compact state:
+cuflllm instead reads the live OS Accessibility tree, strips hidden/decorative clutter, assigns short stable-per-snapshot IDs (`e1`, `e2`, ...), executes actions (or multi-step batches), and returns only what changed (`DIFF:`) plus the updated compact state:
 
 ```text
 BATCH OK (8/8 steps):
@@ -46,8 +48,8 @@ e22 | button | "Equals" | (1005,664 48x48) | press
   - Infers missing text-field labels from adjacent `static_text` labels to the left or directly above.
   - Labels macOS traffic-light window buttons (`Close Window`, `Minimize Window`, `Zoom Window`, `Full Screen`).
   - Automatically activates `AXEnhancedUserInterface` / `AXManualAccessibility` per PID for Chromium, Electron, VS Code, Slack, Discord, Spotify, Claude, Notion, Obsidian, and Firefox.
-- **On-Device Vision OCR Fallback (`ocr=auto|always|never`):** When a window exposes fewer than 4 elements or zero interactive controls (e.g., custom canvases or non-accessible UI), CUFL captures the window locally via `ScreenCaptureKit` and extracts text bounding boxes with `VNRecognizeTextRequest`.
-- **Single & Multi-Step Batch Execution (`POST /batch` / `cufl_batch`):** Run sequences like *minimize/switch app -> new tab -> focus -> type URL + Enter* in a single HTTP/MCP call with per-step settle controls and one final `DIFF:` + snapshot.
+- **On-Device Vision OCR Fallback (`ocr=auto|always|never`):** When a window exposes fewer than 4 elements or zero interactive controls (e.g., custom canvases or non-accessible UI), cuflllm captures the window locally via `ScreenCaptureKit` and extracts text bounding boxes with `VNRecognizeTextRequest`.
+- **Single & Multi-Step Batch Execution (`POST /batch` / `cuflllm_batch`):** Run sequences like *minimize/switch app -> new tab -> focus -> type URL + Enter* in a single HTTP/MCP call with per-step settle controls and one final `DIFF:` + snapshot.
 - **Menu Bar Inspection & Triggering:** Lists top menu bar paths and shortcuts (`m32 | "Window > Minimize" | Cmd+M`) so agents can trigger commands reliably without guessing UI paths.
 - **Privacy & Safety by Default:**
   - `AXSecureTextField` values are redacted as `[REDACTED]`.
@@ -70,12 +72,12 @@ e22 | button | "Equals" | (1005,664 48x48) | press
 ### 1. Clone & Build
 
 ```bash
-git clone https://github.com/<your-username>/cufl.git
-cd cufl
+git clone https://github.com/newuser00000/cuflllm.git
+cd cuflllm
 swift build -c release
 ```
 
-The compiled binary will be at `.build/release/cufl`.
+The compiled binary will be at `.build/release/cuflllm`.
 
 ### 2. Run Tests
 
@@ -89,37 +91,37 @@ swift test -Xswiftc -plugin-path -Xswiftc /Library/Developer/CommandLineTools/us
 
 ### 3. Grant macOS Permissions
 
-Run the built-in diagnostic command from the **same terminal app** where you will run `cufl`:
+Run the built-in diagnostic command from the **same terminal app** where you will run `cuflllm`:
 
 ```bash
-.build/release/cufl doctor --prompt
+.build/release/cuflllm doctor --prompt
 ```
 
-1. Open **System Settings -> Privacy & Security -> Accessibility** and enable your terminal app (e.g., Terminal, iTerm2, Ghostty, VS Code) or the `cufl` binary itself.
+1. Open **System Settings -> Privacy & Security -> Accessibility** and enable your terminal app (e.g., Terminal, iTerm2, Ghostty, VS Code) or the `cuflllm` binary itself.
 2. *(Optional, only needed for `ocr=auto|always` fallback on non-accessible windows)* Request Screen Recording access:
    ```bash
-   .build/release/cufl doctor --prompt-screen
+   .build/release/cuflllm doctor --prompt-screen
    ```
    and enable **Screen Recording** for your terminal app.
 
 ### 4. Sanity Check
 
 ```bash
-.build/release/cufl doctor
-.build/release/cufl windows
-.build/release/cufl snapshot --max 40
+.build/release/cuflllm doctor
+.build/release/cuflllm windows
+.build/release/cuflllm snapshot --max 40
 ```
 
 ---
 
 ## Usage Modes
 
-### 1. Local HTTP Daemon (`cufl serve`)
+### 1. Local HTTP Daemon (`cuflllm serve`)
 
 Starts a local stateful server (default `127.0.0.1:8787`) that tracks element/window/menu caches and computes automatic diffs across steps:
 
 ```bash
-.build/release/cufl serve --host 127.0.0.1 --port 8787
+.build/release/cuflllm serve --host 127.0.0.1 --port 8787
 ```
 
 #### Endpoints
@@ -171,7 +173,7 @@ Supported `action` values in `/act` and `/batch`: `click`, `double_click`, `righ
 
 ### 2. Local 27B / OpenAI-Compatible Agent (`agent/run_agent.py`)
 
-A zero-dependency Python loop using OpenAI-compatible tool calling (works with Ollama, LM Studio, vLLM, MLX servers, etc.). Start `cufl serve` in one terminal, then run:
+A zero-dependency Python loop using OpenAI-compatible tool calling (works with Ollama, LM Studio, vLLM, MLX servers, etc.). Start `cuflllm serve` in one terminal, then run:
 
 ```bash
 # Ollama example
@@ -187,24 +189,24 @@ python3 agent/run_agent.py "Open Firefox, start a new tab, and open example.com"
 ```
 
 Agent options:
-- `--cufl-url` (default `http://127.0.0.1:8787`)
-- `--llm-url` (default `CUFL_LLM_URL` or `http://127.0.0.1:11434/v1`)
-- `--model` (default `CUFL_MODEL` or `gemma3:27b`)
-- `--api-key` (default `CUFL_API_KEY` or `local`)
+- `--cuflllm-url` (default `http://127.0.0.1:8787`)
+- `--llm-url` (default `CUFLLLM_LLM_URL` or `http://127.0.0.1:11434/v1`)
+- `--model` (default `CUFLLLM_MODEL` or `gemma3:27b`)
+- `--api-key` (default `CUFLLLM_API_KEY` or `local`)
 - `--max-steps` (default `15`)
 - `--confirm` (require interactive `[y/N]` confirmation before every UI action)
 
 ---
 
-### 3. MCP Server (`cufl mcp`)
+### 3. MCP Server (`cuflllm mcp`)
 
 Any MCP client can connect directly over stdio:
 
 ```json
 {
   "mcpServers": {
-    "cufl": {
-      "command": "/path/to/cufl/.build/release/cufl",
+    "cuflllm": {
+      "command": "/path/to/cuflllm/.build/release/cuflllm",
       "args": ["mcp"]
     }
   }
@@ -212,38 +214,38 @@ Any MCP client can connect directly over stdio:
 ```
 
 Exposed MCP tools (11):
-- `cufl_get_screen_state`
-- `cufl_click`
-- `cufl_type_text`
-- `cufl_press_key`
-- `cufl_scroll`
-- `cufl_open_app`
-- `cufl_focus_window`
-- `cufl_list_windows`
-- `cufl_get_menu_bar`
-- `cufl_click_menu`
-- `cufl_batch`
+- `cuflllm_get_screen_state`
+- `cuflllm_click`
+- `cuflllm_type_text`
+- `cuflllm_press_key`
+- `cuflllm_scroll`
+- `cuflllm_open_app`
+- `cuflllm_focus_window`
+- `cuflllm_list_windows`
+- `cuflllm_get_menu_bar`
+- `cuflllm_click_menu`
+- `cuflllm_batch`
 
 ---
 
 ### 4. Direct CLI Commands
 
 ```text
-cufl doctor [--prompt] [--prompt-screen] [--json]
-cufl windows [--json]
-cufl snapshot [--window <id>] [--max <n>] [--ocr auto|always|never] [--json]
-cufl menu [--json]
-cufl click <id> [--double | --right] [--mode auto|ax|mouse] [--json]
-cufl type [id] <text> [--clear] [--enter] [--json]
-cufl key <key-or-combo> [--json]
-cufl scroll [up|down|left|right] [--id <id>] [--amount <px>] [--json]
-cufl open <app-name> [--json]
-cufl focus <window-id> [--json]
-cufl menu-click <id-or-path> [--json]
-cufl act <json-ActionRequest>
-cufl batch <json-BatchActionRequest>
-cufl serve [--host 127.0.0.1] [--port 8787]
-cufl mcp
+cuflllm doctor [--prompt] [--prompt-screen] [--json]
+cuflllm windows [--json]
+cuflllm snapshot [--window <id>] [--max <n>] [--ocr auto|always|never] [--json]
+cuflllm menu [--json]
+cuflllm click <id> [--double | --right] [--mode auto|ax|mouse] [--json]
+cuflllm type [id] <text> [--clear] [--enter] [--json]
+cuflllm key <key-or-combo> [--json]
+cuflllm scroll [up|down|left|right] [--id <id>] [--amount <px>] [--json]
+cuflllm open <app-name> [--json]
+cuflllm focus <window-id> [--json]
+cuflllm menu-click <id-or-path> [--json]
+cuflllm act <json-ActionRequest>
+cuflllm batch <json-BatchActionRequest>
+cuflllm serve [--host 127.0.0.1] [--port 8787]
+cuflllm mcp
 ```
 
 ---
@@ -251,8 +253,10 @@ cufl mcp
 ## Project Structure
 
 ```text
-.
+cuflllm/
+├── LICENSE
 ├── Package.swift
+├── README.md
 ├── Sources/
 │   ├── CuflCore/
 │   │   ├── AccessibilityEngine.swift  # Live AX tree walk, pruning, label inference, enhanced UI
@@ -263,7 +267,7 @@ cufl mcp
 │   │   ├── Models.swift               # Snapshot, ActionRequest, BatchActionRequest, Diff schemas
 │   │   ├── OCRFallback.swift          # ScreenCaptureKit + Vision text recognition fallback
 │   │   └── TreeFormatter.swift        # Compact token-efficient text formatter + diff engine
-│   └── cufl/
+│   └── cuflllm/
 │       └── main.swift                 # CLI entrypoint
 ├── Tests/
 │   └── CuflCoreTests/
@@ -276,7 +280,7 @@ cufl mcp
 
 ## Contributing & Roadmap
 
-Contributions, bug reports, and benchmarks across different macOS apps and local models are very welcome. Areas of active interest:
+Contributions, bug reports, and benchmarks across different macOS apps and local models are very welcome via [GitHub Issues](https://github.com/newuser00000/cuflllm/issues) and [Pull Requests](https://github.com/newuser00000/cuflllm/pulls). Areas of active interest:
 
 - **Mobile / Assistive Port (Android `AccessibilityService`):** Exposing the same compact tree + `ScreenDiff` + `/batch` + safety confirmation loop as an on-device Android accessibility assistant for visually impaired users and low-bandwidth agents.
 - **Voice / TTS Confirmation Loop:** Spoken diff summaries and voice confirmation before high-stakes actions.
@@ -287,4 +291,4 @@ Contributions, bug reports, and benchmarks across different macOS apps and local
 
 ## License
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE) — Copyright (c) 2026 [newuser00000](https://github.com/newuser00000).

@@ -19,7 +19,7 @@ public final class CuflService: @unchecked Sendable {
     public init(cacheDirectory: URL? = nil) {
         let baseDir = cacheDirectory ?? FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".cache", isDirectory: true)
-            .appendingPathComponent("cufl", isDirectory: true)
+            .appendingPathComponent("cuflllm", isDirectory: true)
         self.cacheURL = baseDir.appendingPathComponent("last_snapshot.json")
         self.lastSnapshot = loadCachedSnapshot()
     }

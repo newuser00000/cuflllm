@@ -2,13 +2,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "cufl",
+    name: "cuflllm",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .library(name: "CuflCore", targets: ["CuflCore"]),
-        .executable(name: "cufl", targets: ["cufl"])
+        .executable(name: "cuflllm", targets: ["cuflllm"])
     ],
     targets: [
         .target(
@@ -22,7 +22,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "cufl",
+            name: "cuflllm",
             dependencies: ["CuflCore"]
         ),
         .testTarget(

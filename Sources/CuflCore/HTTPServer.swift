@@ -96,8 +96,8 @@ public final class HTTPServer: @unchecked Sendable {
     private let service: CuflService
     private let host: String
     private let port: UInt16
-    private let actionQueue = DispatchQueue(label: "cufl.http.actions")
-    private let ioQueue = DispatchQueue(label: "cufl.http.connections", attributes: .concurrent)
+    private let actionQueue = DispatchQueue(label: "cuflllm.http.actions")
+    private let ioQueue = DispatchQueue(label: "cuflllm.http.connections", attributes: .concurrent)
 
     public init(service: CuflService, host: String = "127.0.0.1", port: UInt16 = 8787) {
         self.service = service
@@ -110,7 +110,7 @@ public final class HTTPServer: @unchecked Sendable {
 
         let serverFD = socket(AF_INET, SOCK_STREAM, 0)
         guard serverFD >= 0 else {
-            throw NSError(domain: "cufl.http", code: Int(errno), userInfo: [NSLocalizedDescriptionKey: "Failed to create socket"])
+            throw NSError(domain: "cuflllm.http", code: Int(errno), userInfo: [NSLocalizedDescriptionKey: "Failed to create socket"])
         }
 
         var reuse: Int32 = 1
@@ -122,7 +122,7 @@ public final class HTTPServer: @unchecked Sendable {
         addr.sin_port = port.bigEndian
         if inet_pton(AF_INET, host, &addr.sin_addr) != 1 {
             close(serverFD)
-            throw NSError(domain: "cufl.http", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid bind host '\(host)'"])
+            throw NSError(domain: "cuflllm.http", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid bind host '\(host)'"])
         }
 
         let bindResult = withUnsafePointer(to: &addr) {
@@ -133,16 +133,16 @@ public final class HTTPServer: @unchecked Sendable {
         guard bindResult == 0 else {
             let errCode = Int(errno)
             close(serverFD)
-            throw NSError(domain: "cufl.http", code: errCode, userInfo: [NSLocalizedDescriptionKey: "Failed to bind \(host):\(port) (errno \(errCode))"])
+            throw NSError(domain: "cuflllm.http", code: errCode, userInfo: [NSLocalizedDescriptionKey: "Failed to bind \(host):\(port) (errno \(errCode))"])
         }
 
         guard listen(serverFD, 64) == 0 else {
             let errCode = Int(errno)
             close(serverFD)
-            throw NSError(domain: "cufl.http", code: errCode, userInfo: [NSLocalizedDescriptionKey: "Failed to listen on \(host):\(port)"])
+            throw NSError(domain: "cuflllm.http", code: errCode, userInfo: [NSLocalizedDescriptionKey: "Failed to listen on \(host):\(port)"])
         }
 
-        let stderrMsg = "CUFL HTTP server listening on http://\(host):\(port)\n"
+        let stderrMsg = "cuflllm HTTP server listening on http://\(host):\(port)\n"
         FileHandle.standardError.write(Data(stderrMsg.utf8))
 
         while true {

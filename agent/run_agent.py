@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Zero-dependency local LLM computer-use runner for CUFL.
+Zero-dependency local LLM computer-use runner for cuflllm.
 Works with any OpenAI-compatible local server (Ollama, LM Studio, MLX, llama.cpp).
 """
 
@@ -221,8 +221,8 @@ def http_text(url: str) -> str:
         return resp.read().decode("utf-8")
 
 
-def call_cufl_tool(cufl_url: str, name: str, args: dict[str, Any]) -> str:
-    base = cufl_url.rstrip("/")
+def call_cuflllm_tool(cuflllm_url: str, name: str, args: dict[str, Any]) -> str:
+    base = cuflllm_url.rstrip("/")
     if name == "get_screen_state":
         params = ["format=text"]
         if args.get("window_id"):
@@ -323,28 +323,28 @@ def prune_old_tool_states(messages: list[dict[str, Any]], keep_last: int = 2) ->
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run a local 27B/OpenAI-compatible LLM with CUFL.")
+    parser = argparse.ArgumentParser(description="Run a local 27B/OpenAI-compatible LLM with cuflllm.")
     parser.add_argument("goal", help="Task for the computer-use agent to perform")
-    parser.add_argument("--cufl-url", default="http://127.0.0.1:8787", help="CUFL HTTP server URL")
-    parser.add_argument("--llm-url", default=os.environ.get("CUFL_LLM_URL", "http://127.0.0.1:11434/v1"), help="OpenAI-compatible base URL")
-    parser.add_argument("--model", default=os.environ.get("CUFL_MODEL", "gemma3:27b"), help="Model ID on your local LLM server")
-    parser.add_argument("--api-key", default=os.environ.get("CUFL_API_KEY", "local"), help="Optional API key")
+    parser.add_argument("--cuflllm-url", default="http://127.0.0.1:8787", help="cuflllm HTTP server URL")
+    parser.add_argument("--llm-url", default=os.environ.get("CUFLLLM_LLM_URL", "http://127.0.0.1:11434/v1"), help="OpenAI-compatible base URL")
+    parser.add_argument("--model", default=os.environ.get("CUFLLLM_MODEL", "gemma3:27b"), help="Model ID on your local LLM server")
+    parser.add_argument("--api-key", default=os.environ.get("CUFLLLM_API_KEY", "local"), help="Optional API key")
     parser.add_argument("--max-steps", type=int, default=15, help="Maximum tool steps before stopping")
     parser.add_argument("--confirm", action="store_true", help="Ask y/n before executing each UI action")
     args = parser.parse_args()
 
     try:
-        health = http_json(f"{args.cufl_url.rstrip('/')}/health")
+        health = http_json(f"{args.cuflllm_url.rstrip('/')}/health")
     except Exception as exc:
-        print(f"Cannot reach CUFL server at {args.cufl_url}: {exc}", file=sys.stderr)
-        print("Start it first with: .build/release/cufl serve", file=sys.stderr)
+        print(f"Cannot reach cuflllm server at {args.cuflllm_url}: {exc}", file=sys.stderr)
+        print("Start it first with: .build/release/cuflllm serve", file=sys.stderr)
         return 1
 
     if not health.get("accessibility_trusted"):
-        print("WARNING: CUFL reports Accessibility permission is NOT granted yet.", file=sys.stderr)
-        print("Run `cufl doctor --prompt` and enable your terminal in Privacy & Security > Accessibility.", file=sys.stderr)
+        print("WARNING: cuflllm reports Accessibility permission is NOT granted yet.", file=sys.stderr)
+        print("Run `cuflllm doctor --prompt` and enable your terminal in Privacy & Security > Accessibility.", file=sys.stderr)
 
-    initial_state = http_text(f"{args.cufl_url.rstrip('/')}/state?format=text")
+    initial_state = http_text(f"{args.cuflllm_url.rstrip('/')}/state?format=text")
 
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -408,7 +408,7 @@ def main() -> int:
                     messages.append({"role": "tool", "tool_call_id": call["id"], "content": result_text})
                     continue
 
-            result_text = call_cufl_tool(args.cufl_url, name, call_args)
+            result_text = call_cuflllm_tool(args.cuflllm_url, name, call_args)
             first_line = result_text.splitlines()[0] if result_text else ""
             print(f"   <- {first_line}")
             messages.append(

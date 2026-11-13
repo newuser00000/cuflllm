@@ -8,7 +8,7 @@ public final class MCPServer: @unchecked Sendable {
     }
 
     public func runForever() {
-        FileHandle.standardError.write(Data("CUFL MCP server ready on stdio\n".utf8))
+        FileHandle.standardError.write(Data("cuflllm MCP server ready on stdio\n".utf8))
         while let line = readLine(strippingNewline: true) {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty { continue }
@@ -50,7 +50,7 @@ public final class MCPServer: @unchecked Sendable {
                     "tools": [:]
                 ],
                 "serverInfo": [
-                    "name": "cufl",
+                    "name": "cuflllm",
                     "version": "0.1.0"
                 ]
             ]
@@ -83,7 +83,7 @@ public final class MCPServer: @unchecked Sendable {
 
     private func callTool(name: String, arguments: [String: Any]) -> (text: String, isError: Bool) {
         switch name {
-        case "cufl_get_screen_state":
+        case "cuflllm_get_screen_state":
             let maxEls = (arguments["max_elements"] as? NSNumber)?.intValue ?? 100
             let ocrRaw = arguments["ocr"] as? String ?? "auto"
             let ocr = OCRMode(rawValue: ocrRaw) ?? .auto
@@ -91,15 +91,15 @@ public final class MCPServer: @unchecked Sendable {
             let snap = service.captureSnapshot(targetWindowId: windowId, maxElements: maxEls, ocr: ocr)
             return (TreeFormatter.formatSnapshot(snap, maxElements: maxEls), false)
 
-        case "cufl_list_windows":
+        case "cuflllm_list_windows":
             let windows = service.listWindows()
             return (TreeFormatter.formatWindows(windows), false)
 
-        case "cufl_get_menu_bar":
+        case "cuflllm_get_menu_bar":
             let items = service.getMenuBar()
             return (TreeFormatter.formatMenu(items), false)
 
-        case "cufl_click":
+        case "cuflllm_click":
             guard let id = arguments["id"] as? String else {
                 return ("Missing required argument 'id'", true)
             }
@@ -109,7 +109,7 @@ public final class MCPServer: @unchecked Sendable {
             let res = service.performAction(ActionRequest(action: action, id: id, clickMode: mode))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_type_text":
+        case "cuflllm_type_text":
             guard let text = arguments["text"] as? String else {
                 return ("Missing required argument 'text'", true)
             }
@@ -125,7 +125,7 @@ public final class MCPServer: @unchecked Sendable {
             ))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_press_key":
+        case "cuflllm_press_key":
             guard let key = arguments["key"] as? String else {
                 return ("Missing required argument 'key'", true)
             }
@@ -133,7 +133,7 @@ public final class MCPServer: @unchecked Sendable {
             let res = service.performAction(ActionRequest(action: .pressKey, key: key, modifiers: mods))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_scroll":
+        case "cuflllm_scroll":
             let dirStr = arguments["direction"] as? String ?? "down"
             let dir = ScrollDirection(rawValue: dirStr) ?? .down
             let id = arguments["id"] as? String
@@ -141,30 +141,30 @@ public final class MCPServer: @unchecked Sendable {
             let res = service.performAction(ActionRequest(action: .scroll, id: id, direction: dir, amount: amount))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_open_app":
+        case "cuflllm_open_app":
             guard let appName = arguments["app_name"] as? String else {
                 return ("Missing required argument 'app_name'", true)
             }
             let res = service.performAction(ActionRequest(action: .openApp, appName: appName))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_focus_window":
+        case "cuflllm_focus_window":
             guard let windowId = arguments["window_id"] as? String else {
                 return ("Missing required argument 'window_id'", true)
             }
             let res = service.performAction(ActionRequest(action: .focusWindow, windowId: windowId))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_click_menu":
+        case "cuflllm_click_menu":
             let id = arguments["id"] as? String
             let menuPath = arguments["menu_path"] as? String
             let res = service.performAction(ActionRequest(action: .clickMenu, id: id, menuPath: menuPath))
             return (res.compactText ?? res.message, !res.ok)
 
-        case "cufl_batch":
+        case "cuflllm_batch":
             guard let data = try? JSONSerialization.data(withJSONObject: arguments),
                   let batchReq = try? JSONDecoder().decode(BatchActionRequest.self, from: data) else {
-                return ("Invalid arguments for cufl_batch: expected { \"actions\": [...] }", true)
+                return ("Invalid arguments for cuflllm_batch: expected { \"actions\": [...] }", true)
             }
             let res = service.performBatch(batchReq)
             return (res.compactText ?? res.steps.joined(separator: "\n"), !res.ok)
@@ -197,7 +197,7 @@ public final class MCPServer: @unchecked Sendable {
     public static func toolDefinitions() -> [[String: Any]] {
         [
             [
-                "name": "cufl_get_screen_state",
+                "name": "cuflllm_get_screen_state",
                 "description": "Read structured OS accessibility elements (plus optional OCR fallback) for the active macOS window with numbered element IDs like e1, e2.",
                 "inputSchema": [
                     "type": "object",
@@ -209,7 +209,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_click",
+                "name": "cuflllm_click",
                 "description": "Click a UI element by its ID (e.g. e3) and return the updated screen state and diff.",
                 "inputSchema": [
                     "type": "object",
@@ -222,7 +222,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_type_text",
+                "name": "cuflllm_type_text",
                 "description": "Focus/click an optional element ID and type text, optionally clearing existing text or pressing Enter.",
                 "inputSchema": [
                     "type": "object",
@@ -236,7 +236,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_press_key",
+                "name": "cuflllm_press_key",
                 "description": "Press a key or keyboard shortcut (e.g. 'return', 'escape', 'cmd+l', or key='s' with modifiers=['cmd']).",
                 "inputSchema": [
                     "type": "object",
@@ -248,7 +248,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_scroll",
+                "name": "cuflllm_scroll",
                 "description": "Scroll up, down, left, or right over an element or the active window.",
                 "inputSchema": [
                     "type": "object",
@@ -260,7 +260,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_open_app",
+                "name": "cuflllm_open_app",
                 "description": "Open or bring a macOS application to the front (e.g. 'Notes', 'Safari', 'Finder', 'Terminal').",
                 "inputSchema": [
                     "type": "object",
@@ -271,8 +271,8 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_focus_window",
-                "description": "Switch focus to another visible window ID from OTHER_WINDOWS or cufl_list_windows (e.g. w2).",
+                "name": "cuflllm_focus_window",
+                "description": "Switch focus to another visible window ID from OTHER_WINDOWS or cuflllm_list_windows (e.g. w2).",
                 "inputSchema": [
                     "type": "object",
                     "properties": [
@@ -282,7 +282,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_list_windows",
+                "name": "cuflllm_list_windows",
                 "description": "List all visible on-screen macOS application windows with IDs and bounds.",
                 "inputSchema": [
                     "type": "object",
@@ -290,7 +290,7 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_get_menu_bar",
+                "name": "cuflllm_get_menu_bar",
                 "description": "Inspect the frontmost app's top menu bar items (e.g. File > New Window) with IDs and keyboard shortcuts.",
                 "inputSchema": [
                     "type": "object",
@@ -298,18 +298,18 @@ public final class MCPServer: @unchecked Sendable {
                 ]
             ],
             [
-                "name": "cufl_click_menu",
+                "name": "cuflllm_click_menu",
                 "description": "Trigger a menu bar item by ID (m12) or path ('File > New Window').",
                 "inputSchema": [
                     "type": "object",
                     "properties": [
-                        "id": ["type": "string", "description": "Menu item ID from cufl_get_menu_bar."],
+                        "id": ["type": "string", "description": "Menu item ID from cuflllm_get_menu_bar."],
                         "menu_path": ["type": "string", "description": "Menu path such as 'File > Save...'."]
                     ]
                 ]
             ],
             [
-                "name": "cufl_batch",
+                "name": "cuflllm_batch",
                 "description": "Execute multiple deterministic UI actions in one fast round-trip and return the final screen diff + snapshot.",
                 "inputSchema": [
                     "type": "object",

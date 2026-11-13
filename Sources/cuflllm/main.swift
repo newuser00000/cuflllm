@@ -3,24 +3,24 @@ import Foundation
 
 private func printUsage() {
     let usage = """
-    CUFL — Computer Use For LLMs (macOS Accessibility + OCR Service)
+    cuflllm — Computer Use For LLMs (macOS Accessibility + OCR Service)
 
     USAGE:
-      cufl doctor [--prompt] [--prompt-screen] [--json]
-      cufl windows [--json]
-      cufl snapshot [--window <id>] [--max <n>] [--ocr auto|always|never] [--json]
-      cufl menu [--json]
-      cufl click <id> [--double | --right] [--mode auto|ax|mouse] [--json]
-      cufl type [id] <text> [--clear] [--enter] [--json]
-      cufl key <key-or-combo> [--json]
-      cufl scroll [up|down|left|right] [--id <id>] [--amount <px>] [--json]
-      cufl open <app-name> [--json]
-      cufl focus <window-id> [--json]
-      cufl menu-click <id-or-path> [--json]
-      cufl act <json-ActionRequest>
-      cufl batch <json-BatchActionRequest>
-      cufl serve [--host 127.0.0.1] [--port 8787]
-      cufl mcp
+      cuflllm doctor [--prompt] [--prompt-screen] [--json]
+      cuflllm windows [--json]
+      cuflllm snapshot [--window <id>] [--max <n>] [--ocr auto|always|never] [--json]
+      cuflllm menu [--json]
+      cuflllm click <id> [--double | --right] [--mode auto|ax|mouse] [--json]
+      cuflllm type [id] <text> [--clear] [--enter] [--json]
+      cuflllm key <key-or-combo> [--json]
+      cuflllm scroll [up|down|left|right] [--id <id>] [--amount <px>] [--json]
+      cuflllm open <app-name> [--json]
+      cuflllm focus <window-id> [--json]
+      cuflllm menu-click <id-or-path> [--json]
+      cuflllm act <json-ActionRequest>
+      cuflllm batch <json-BatchActionRequest>
+      cuflllm serve [--host 127.0.0.1] [--port 8787]
+      cuflllm mcp
     """
     print(usage)
 }
@@ -124,7 +124,7 @@ case "menu":
 case "click":
     let pos = positionalArgs(subArgs, valueFlags: ["--mode"])
     guard let id = pos.first else {
-        fputs("Error: cufl click requires an element id (e.g. cufl click e3)\n", stderr)
+        fputs("Error: cuflllm click requires an element id (e.g. cuflllm click e3)\n", stderr)
         exit(1)
     }
     let kind: ActionKind = subArgs.contains("--double") ? .doubleClick : (subArgs.contains("--right") ? .rightClick : .click)
@@ -155,7 +155,7 @@ case "type":
         text = pos.joined(separator: " ")
         _ = first
     } else {
-        fputs("Error: cufl type requires text (e.g. cufl type e2 \"hello\" --enter)\n", stderr)
+        fputs("Error: cuflllm type requires text (e.g. cuflllm type e2 \"hello\" --enter)\n", stderr)
         exit(1)
     }
 
@@ -176,7 +176,7 @@ case "type":
 case "key":
     let pos = positionalArgs(subArgs, valueFlags: [])
     guard let keySpec = pos.first else {
-        fputs("Error: cufl key requires a key or shortcut (e.g. cufl key cmd+l)\n", stderr)
+        fputs("Error: cuflllm key requires a key or shortcut (e.g. cuflllm key cmd+l)\n", stderr)
         exit(1)
     }
     let res = service.performAction(ActionRequest(action: .pressKey, key: keySpec))
@@ -203,7 +203,7 @@ case "scroll":
 case "open":
     let pos = positionalArgs(subArgs, valueFlags: [])
     guard !pos.isEmpty else {
-        fputs("Error: cufl open requires an application name (e.g. cufl open Notes)\n", stderr)
+        fputs("Error: cuflllm open requires an application name (e.g. cuflllm open Notes)\n", stderr)
         exit(1)
     }
     let res = service.performAction(ActionRequest(action: .openApp, appName: pos.joined(separator: " ")))
@@ -217,7 +217,7 @@ case "open":
 case "focus":
     let pos = positionalArgs(subArgs, valueFlags: [])
     guard let winId = pos.first else {
-        fputs("Error: cufl focus requires a window id (e.g. cufl focus w2)\n", stderr)
+        fputs("Error: cuflllm focus requires a window id (e.g. cuflllm focus w2)\n", stderr)
         exit(1)
     }
     let res = service.performAction(ActionRequest(action: .focusWindow, windowId: winId))
@@ -231,7 +231,7 @@ case "focus":
 case "menu-click":
     let pos = positionalArgs(subArgs, valueFlags: [])
     guard !pos.isEmpty else {
-        fputs("Error: cufl menu-click requires a menu id (m4) or path (\"File > New\")\n", stderr)
+        fputs("Error: cuflllm menu-click requires a menu id (m4) or path (\"File > New\")\n", stderr)
         exit(1)
     }
     let raw = pos.joined(separator: " ")
@@ -251,7 +251,7 @@ case "menu-click":
 
 case "act":
     guard let rawJSON = subArgs.first, let data = rawJSON.data(using: .utf8) else {
-        fputs("Error: cufl act requires a JSON ActionRequest argument\n", stderr)
+        fputs("Error: cuflllm act requires a JSON ActionRequest argument\n", stderr)
         exit(1)
     }
     do {
@@ -266,7 +266,7 @@ case "act":
 
 case "batch":
     guard let rawJSON = subArgs.first, let data = rawJSON.data(using: .utf8) else {
-        fputs("Error: cufl batch requires a JSON BatchActionRequest argument\n", stderr)
+        fputs("Error: cuflllm batch requires a JSON BatchActionRequest argument\n", stderr)
         exit(1)
     }
     do {
